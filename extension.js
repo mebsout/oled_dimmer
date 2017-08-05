@@ -3,6 +3,7 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const Clutter = imports.gi.Clutter;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 
 const BUS_NAME = 'org.gnome.SettingsDaemon.Power';
 const OBJECT_PATH = '/org/gnome/SettingsDaemon/Power';
@@ -48,8 +49,13 @@ const Dimmer = new Lang.Class({
     );
   },
   _sync: function() {
-    let level = this._proxy.Brightness / 100.0 - 1.0;
-    darker._effect.set_brightness(level);
+    let brightness = this._proxy.Brightness / 100.0;
+    let level = brightness - 1.0;
+    global.log('br:',brightness,"l",level);
+    let [,,,st] = GLib.spawn_command_line_sync('xrandr --output eDP1 --brightness '+ brightness);
+    if(st != 0) {
+      darker._effect.set_brightness(level);
+    }
   },
   cleanup: function() {
     if (this._connectId > -1) {

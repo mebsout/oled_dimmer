@@ -51,10 +51,13 @@ const Dimmer = new Lang.Class({
   _sync: function() {
     let brightness = this._proxy.Brightness / 100.0;
     let level = brightness - 1.0;
-    global.log('br:',brightness,"l",level);
+    let [,,,redshift] = GLib.spawn_command_line_sync('pgrep -x redshift');
     let [,,,st] = GLib.spawn_command_line_sync('xrandr --output eDP1 --brightness '+ brightness);
-    if(st != 0) {
+    if(st != 0 || redshift == 0) {
+      GLib.spawn_command_line_async('xrandr --output eDP1 --brightness 1.0'); // reset xrandr
       darker._effect.set_brightness(level);
+    } else {
+      darker._effect.set_brightness(0); // reset
     }
   },
   cleanup: function() {
